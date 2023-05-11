@@ -1,1 +1,3 @@
 # UrbanAIZE
+
+Large amounts of maps and drawings are archived in society as scanned raster images or paper maps, which could be scanned. Examples include zoning maps or property drawings. These are often used as reference materials in urban planning or renovations. However, in order to use them as reference materials, they need to be digitized, which can be a time-consuming manual task. The goal of this project is to automate the process that would facilitate the digitization, and make old map data more easily accessible and reusable.
