@@ -1,3 +1,15 @@
 # UrbanAIZE
 
 Large amounts of maps and drawings are archived in society as scanned raster images or paper maps, which could be scanned. Examples include zoning maps or property drawings. These are often used as reference materials in urban planning or renovations. However, in order to use them as reference materials, they need to be digitized, which can be a time-consuming manual task. The goal of this project is to automate the process that would facilitate the digitization, and make old map data more easily accessible and reusable.
+
+More information about the project can be found at (in Swedish): [https://www.oru.se/samverkan/oru-innovation/ai-impact-lab/avslutade-projekt/urbanaize/](https://www.oru.se/samverkan/oru-innovation/ai-impact-lab/avslutade-projekt/urbanaize/)
+A web demo as a result of this project can be found at: [https://urbanaize.aass.oru.se/](https://urbanaize.aass.oru.se/)
+
+## Background and Purpose
+
+In 2020, [Statistics Sweden (SCB)](https://www.scb.se/) scanned approx. 8,000 map sheets from the Population and Housing Censuses (FoB) in 1975 and 1980, respectively. The majority of the map sheets are black-and-white economic sheets with delineation lines drawn in color for urban areas that applied at the respective time. The map sheets are in the raster format TIF and sorted into folders based on county and municipality affiliation. An example of such a map image can be seen in Image 1. The resolution for each map sheet is 300 dpi with approx. 7500 x 7000 pixels. The demarcations for the urban areas can be linked to statistics and contribute to a geographical description both of the rapid urbanization in connection with the million program and the breaking point of the so-called green wave. The material is, therefore, deemed to contain valuable information and relevant to digitize, to then be made available as open data.
+
+![Exempel på kartbild](./images/example.png)
+<sup align="center"><b>Image 1:</b> An example of a scanned map sheet, as a result of the Population and Housing Censuses (FoB) in 1975. .<sup>  
+
+In this project, it is mainly the borders in FoB 1975 that are of interest. These borders have previously not been digitized and made available as vectorized geographical coordinates. As a consequence, it is not possible to fully follow and understand the Swedish urbanization and the geographical development of the urbanization, which the scanned map material will be able to contribute to. The purpose of the project is to make available map material that otherwise risks being left unused in archives due to time-consuming manual digitization processes. An automated digitization process could be used by many functions in society. Archived maps and drawings would become more accessible to community planners, researchers would have easier access to historical geographic data, and construction companies, architects and individuals would more easily be able to reuse hand-drawn and printed drawings in planning and remodeling.
