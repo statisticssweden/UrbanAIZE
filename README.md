@@ -53,3 +53,20 @@ This project assumes the following project structure:
         cd UrbanAIZE && pip3 install -r requirements.txt
         
 ## Operation
+	
+### 1. Preperation
+
+	python3 preperation.py --path <path>
+	
+### 2. Annotation
+
+	python3 annotation.py --path <path>
+
+### 3. Training
+
+	python3 train.py --path <path>
+	
+### 4. Prediction
+	
+	python3 prediction.py --path <path>
+	
