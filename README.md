@@ -2,9 +2,9 @@
 
 Large amounts of map sheets and drawings are archived in society as scanned raster images or paper maps (that could be scanned). Examples include zoning maps or property drawings. These are often used as reference materials in urban planning or renovations. However, in order to use them as reference materials, they need to be digitized, which can be a time-consuming manual task. The goal of this project is to automate the process that would facilitate the digitization, and make old map data more easily accessible and reusable.
 
-_More information about the project can be found at (in Swedish):_ [https://www.oru.se/samverkan/oru-innovation/ai-impact-lab/avslutade-projekt/urbanaize/](https://www.oru.se/samverkan/oru-innovation/ai-impact-lab/avslutade-projekt/urbanaize/)
+_More information in Swedish):_ [https://www.oru.se/samverkan/oru-innovation/ai-impact-lab/avslutade-projekt/urbanaize/](https://www.oru.se/samverkan/oru-innovation/ai-impact-lab/avslutade-projekt/urbanaize/)
 
-_A web demo as a result of this project can be found at:_ [https://urbanaize.aass.oru.se/](https://urbanaize.aass.oru.se/)
+_Web demo as a result of this project:_ [https://urbanaize.aass.oru.se/](https://urbanaize.aass.oru.se/)
 
 
 ## Background and Purpose
@@ -46,12 +46,11 @@ This project assumes the following project structure:
 
 1. Clone this GitHub repository:
 
-     $ git clone https://github.com/statisticssweden/UrbanAIZE.git
+	$ git clone https://github.com/statisticssweden/UrbanAIZE.git
 
 2. Install a required Python libraries:
 
-     $ cd UrbanAIZE
-     $ pip3 install -r requirements.txt
-
+	$ cd UrbanAIZE
+	$ pip3 install -r requirements.txt
 
 ## Operation
