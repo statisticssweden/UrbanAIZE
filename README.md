@@ -44,13 +44,12 @@ This project assumes the following project structure:
 
 ## Installation
 
-1. Clone this GitHub repository:
-
-	$ git clone https://github.com/statisticssweden/UrbanAIZE.git
-
-2. Install a required Python libraries:
-
-	$ cd UrbanAIZE
-	$ pip3 install -r requirements.txt
-
+1. Clone this GitHub repository:       
+        
+        git clone https://github.com/statisticssweden/UrbanAIZE.git 
+       
+2. Install required Python libraries:
+        
+        cd UrbanAIZE && pip3 install -r requirements.txt
+        
 ## Operation
