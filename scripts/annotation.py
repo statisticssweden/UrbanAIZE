@@ -71,32 +71,36 @@ if __name__ == '__main__':
     data_file = os.path.join(args.path, 'kartdata.json')
 
     # Read all data about all map images from JSON file
-    with open(data_file, 'r+') as f:
-        maps = json.load(f)
+    try:
+        with open(data_file, 'r+') as f:
+            maps = json.load(f)
 
-    # Load map image
-    img = load_image(maps, args.height)
+        # Load map image
+        img = load_image(maps, args.height)
+        # Main display loop
+        while(True):
 
-    # Main display loop
-    while(True):
+            # Saftey check
+            if img is None:
+                break
 
-        # Saftey check
-        if img is None:
-            break
-
-        # Display map image
-        img.display()
-            
-        # Waiting for user input (and handle the input)
-        key = cv2.waitKeyEx(1) & 0xFF
-        if key == 27 or key == ord('Q') or key == ord('q'): 
-            cv2.destroyAllWindows()
-            break
-        elif key == ord('M') or key == ord('m') or key == ord('N') or key == ord('n'):
-            update_data(data_file, img.fname, img.corners)
-            if key == ord('M') or key == ord('m'):
-                img.random_sample(args.path, samples = args.samples, sz = args.size)
-            img.close()
-            img = load_image(maps, args.height)
+            # Display map image
+            img.display()
+        
+            # Waiting for user input (and handle the input)
+            key = cv2.waitKeyEx(1) & 0xFF
+            if key == 27 or key == ord('Q') or key == ord('q'): 
+                cv2.destroyAllWindows()
+                break
+            elif key == ord('M') or key == ord('m') or key == ord('N') or key == ord('n'):
+                update_data(data_file, img.fname, img.corners)
+                if key == ord('M') or key == ord('m'):
+                    img.random_sample(args.path, samples = args.samples, sz = args.size)
+                    img.close()
+                    img = load_image(maps, args.height)
         else:
             img.key_handler(key)
+
+    except FileNotFoundError as e:
+        print(f"Error: could not load map images, ensure that that folder $args.path exist and that the the folder contains file 'kartdata.json'.")
+
