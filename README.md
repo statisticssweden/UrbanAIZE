@@ -22,23 +22,23 @@ In this project, it is mainly the borders in FoB 1975 that are of interest. Thes
 This project assumes the following project structure:
 
      UrbanAIZE/
-     ├── images/                	# Images used for visualization
+     ├── images/                        # Images used for visualization
      ├── scripts/                  		
-     	 ├── annotation.py 	        # Annotation of map images
-	 ├── dataset.py 	        # Handles image paris during traning 
-	 ├── __init__.py 
-	 ├── map_image.py               # Helper class used for processing map image
-	 └── model/
-	     ├── block.py		# Common network block layers
-	     ├── unet.py		# Implementation of the classic U-Net model
-	     └── unet2plus.py		# Implementation of the U-Net++ model
-	 ├── preparation.py             # Preperation of map images
-	 ├── train.py                   # Traning of machine learning models	
-	 ├── uitls.py                   # General util functions
-	 └── window_handler.py          # Handles display of mapg images
-     ├── requirements.txt		# Required Python libraries
+         ├── annotation.py              # Annotation of map images
+         ├── dataset.py                 # Handles image pairs during training 
+         ├── __init__.py
+         ├── map_image.py               # Helper class used for processing map image
+         └── model/
+             ├── block.py               # Common network block layers
+             ├── unet.py                # Implementation of the classic U-Net model
+             └── unet2plus.py           # Implementation of the U-Net++ model
+         ├── preparation.py             # Preperation of map images
+         ├── train.py                   # Traning of machine learning models	
+         ├── uitls.py                   # General util functions
+         └── window_handler.py          # Handles display of map images
+     ├── requirements.txt               # Required Python libraries
      ├── .gitginore              
-     ├── LICENSE                	# MIT License
+     ├── LICENSE                        # MIT License
      └── README   
 
 
