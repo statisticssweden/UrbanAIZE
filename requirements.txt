@@ -1,0 +1,10 @@
+torch
+torchvision
+torchsummary
+tqdm
+sweden-crs-transformations
+opencv-python
+opencv-contrib-python
+pandas
+geopandas
+Pillow
