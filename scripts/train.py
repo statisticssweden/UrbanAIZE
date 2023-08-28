@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
         # Creat instances of dataloaders
         training_loader = DataLoader(train_set, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers, pin_memory = True)
-        validation_loader = DataLoader(val_set, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
+        validation_loader = DataLoader(val_set, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers, pin_memory = True)
     
     except FileNotFoundError:
         print('[Error] Could not load dataset.')
@@ -77,6 +77,7 @@ if __name__ == '__main__':
 
     # Get the device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print("Training model '{}' on device '{}'".format(args.model, device))
 
     # Create an instance of the U-Net model 
     in_channels = 3   # Number of input channels (e.g., RGB image)
@@ -113,33 +114,33 @@ if __name__ == '__main__':
 
     # Train loop
     losses = {'loss': [], 'epoch': []}
-    best_loss = float('inf')  # Initialize with a high value                                                                                                                                                                                                                                    
+    best_loss = float('inf')  # Initialize with a high value                                   
     for epoch in range(args.epochs):
 
-        # Traning                                                                                                                                                                                                                                                              
+        # Traning
         model.train()
         train_loss = 0.0
         for inputs, targets in tqdm((training_loader)):
             inputs = inputs.to(device)
             targets = targets.to(device)
 
-            # Forward pass and compute loss                                                                                                                                                                                                                                    
+            # Forward pass and compute loss
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             train_loss += loss.item()
 
-            # Backward pass and optimization                                                                                                                                                                                                                                   
+            # Backward pass and optimization    
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-        # Compute average training loss                                                                                                                                                                                                                                        
+        # Compute average training loss                      
         train_loss /= len(training_loader)
 
-        # Print training loss for each epoch                                                                                                                                                                                                                                   
+        # Print training loss for each epoch
         print(f"Epoch {epoch + 1}/{args.epochs}: Train Loss: {train_loss:.4f}")
 
-        # Validation                                                                                                                                                                                                                                                           
+        # Validation
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
@@ -147,15 +148,15 @@ if __name__ == '__main__':
                 inputs = inputs.to(device)
                 targets = targets.to(device)
 
-                # Forward pass and compute loss                                                                                                                                                                                                                                
+                # Forward pass and compute loss               
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
                 val_loss += loss.item()
 
-        # Compute average validation loss                                                                                                                                                                                                                                      
+        # Compute average validation loss
         val_loss /= len(validation_loader)
 
-        # Print validation loss for each epoch                                                                                                                                                                                                                                 
+        # Print validation loss for each epoch
         print(f"Epoch {epoch + 1}/{args.epochs}: Val Loss: {val_loss:.4f}")
         losses['loss'].append(val_loss)
         losses['epoch'].append(epoch + 1)

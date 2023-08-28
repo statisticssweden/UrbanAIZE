@@ -67,7 +67,7 @@ class MapImage(dict):
         self['points'] = []
         for p in lst:
             self['points'].append(p)
-    
+   
     # Get full name (i.e., path and file name)
     def filepath(self, xtra: str = "") -> str:
         return os.path.join(self.path, xtra, self.fname)

@@ -44,7 +44,6 @@ def update_data(path, fname, corners):
     for map in maps['images']:
         if map['fname'] == fname:
             map['corners'] = corners
-            break
     with open(path, 'w') as f:
         json.dump(maps, f, indent = 2)
 
@@ -77,6 +76,7 @@ if __name__ == '__main__':
 
         # Load map image
         img = load_image(maps, args.height)
+        
         # Main display loop
         while(True):
 
@@ -98,9 +98,10 @@ if __name__ == '__main__':
                     img.random_sample(args.path, samples = args.samples, sz = args.size)
                     img.close()
                     img = load_image(maps, args.height)
-        else:
-            img.key_handler(key)
+            else:
+                img.key_handler(key)
 
     except FileNotFoundError as e:
-        print(f"Error: could not load map images, ensure that that folder $args.path exist and that the the folder contains file 'kartdata.json'.")
+        print("Error: Could not open data file 'kartdata.json' as result of intial 'preperation.py'.")
+        print("Error: Run inital preperation and confirm that the file 'kartdata.json' is located in path: {}".format(args.path))
 

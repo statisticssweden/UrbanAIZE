@@ -54,7 +54,7 @@ This project assumes the following project structure:
         
 ## Operation
 
-As an initial procedure, download map images (in `.tiff` format), including the file `kartdata.json`, and place them in a local folder. This folder's default name and location is `./data`, but the folder's path and name can also be specified by the optional `--path` argument for all the operations listed below. 
+As an initial procedure, download map images (in `.tiff` format), including the database file `Tatorter_1980_2020.gpkg`, and place them in a local folder. This folder's default name and location is `./data`, but the folder's path and name can also be specified by the optional `--path` argument for all the operations listed below. 
  
 ### 1. Preperation
 

@@ -7,13 +7,14 @@ import os
 import sys
 import random
 import json
+from utils import getModifiedName
 
 # --------------------
 # General super class for handle a OpenCV windows
 # ------------------------------------------------
 class Window:
     def __init__(self, name, img, param = cv2.WINDOW_NORMAL) -> None:
-        self.name = name
+        self.name = getModifiedName(name)
         self.img = img
         self.orimg = img.copy()
         
@@ -26,7 +27,7 @@ class Window:
 
     # Display the window
     def display(self) -> None:
-        cv2.imshow(self.name, self.img)
+        cv2.imshow(self.fname, self.img)
 
 # ------------------
 # Class for handle map images

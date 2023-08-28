@@ -55,7 +55,7 @@ if __name__ == '__main__':
                          type = str )
     args = parser.parse_args()
     directories = []
-    for dir in ['data', 'preds', 'squares']:
+    for dir in ['data']:
         directories.append(os.path.join(args.path, dir))
 
     # Remove content of exesting directories
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         for dir in directories:
             if os.path.exists(dir) and args.remove:
                 shutil.rmtree(dir)
-
+    
     # Replace all the special characters in file and folder names (e.g. ÅÄÖ).
     for path, subdir, files in os.walk(args.path, topdown=False):
         for file in files:      
@@ -72,8 +72,6 @@ if __name__ == '__main__':
             os.rename( os.path.join(path, folder), os.path.join(path, getModifiedName(folder)))
 
     # Create the structure of directories
-    if not os.path.exists(args.path):
-        os.mkdir(args.path)
     for dir in directories:
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -95,7 +93,6 @@ if __name__ == '__main__':
     try:
         fname = 'Tatorter_1980_2020.gpkg'
         gdf = gpd.read_file(os.path.join(args.path, fname), layer=f'To{args.year}_SR99TM')
-        #gdf = gdf.loc[gdf['KOMMUN'] == '1585']
         gdf['points'] = gdf.apply(lambda p: p['geometry'].exterior.coords, axis=1)
         print(gdf)
         for points in gdf['points']:
@@ -107,8 +104,7 @@ if __name__ == '__main__':
                     if map.check_coordinates(x, y):
                         map.points = [sr99Tort90(p[1], p[0]) for p in points]
     except:
-        print('[Error] Could not open database file Tatorter_1980_2020.gpkg.')
-        print('Make sure the database file is located in path: {}'.format(args.path))
+        print("Error: Could not open database file 'Tatorter_1980_2020.gpkg', make sure the database file is located in path: {}".format(args.path))
 
     # Detect the map (square) image of interest
     for map in tqdm(maps['images']):
@@ -117,8 +113,8 @@ if __name__ == '__main__':
         except:
             pass
 
-        with open(os.path.join(args.path, 'kartdata.json'), 'w+') as f:
-            json.dump(maps, f, indent = 2)
+        with open(os.path.join(args.path, 'kartdata.json'), 'w+', encoding = 'utf8') as f:
+            json.dump(maps, f, indent = 2, ensure_ascii=False)
 
     '''
     # Crop all map images of category 'Ekonomisk' 
