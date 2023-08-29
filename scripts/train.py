@@ -10,6 +10,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import random_split
 from torchvision.transforms import transforms
 from torchsummary import summary
+# from torchmetrics import JaccardIndex
 
 from dataset import ImagePairDataset
 from model.unet import UNet
@@ -91,7 +92,8 @@ if __name__ == '__main__':
 
     # Define loss function and optimizer
     criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # criterion = JaccardIndex(task='multiclass', num_classes=2)
+    optimizer = optim.AdamW(model.parameters(), lr=0.0001)
 
     # Ensure directory for storing checkpoints and losses
     checkpoint_path = os.path.join(args.path, 'checkpoints')
@@ -124,13 +126,15 @@ if __name__ == '__main__':
             inputs = inputs.to(device)
             targets = targets.to(device)
 
+            # Zero parameter gradients
+            optimizer.zero_grad()
+            
             # Forward pass and compute loss
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             train_loss += loss.item()
 
             # Backward pass and optimization    
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
