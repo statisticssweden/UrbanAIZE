@@ -21,7 +21,7 @@ class DoubleConvBlock(nn.Module):
         self.dconvb1 = ConvBlock(in_channels, out_channels, batch_norm)
         self.dconvb2 = ConvBlock(out_channels, out_channels, batch_norm)
     def forward(self, x):
-        y = self.dconvb1(x) 
+        y = self.dconvb2(self.dconvb1(x))
         return y
     
 class UpConvBlock(nn.Module):
