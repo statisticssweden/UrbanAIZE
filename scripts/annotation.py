@@ -11,8 +11,8 @@ import numpy as np
 import cv2
 import time
 from map_image import MapImage
-from window_handler import MapWindow
-
+from window.annotation import AnnotationWindow
+from utils import getModifiedName
 
 # Randomly select a map image
 def randomly_select(maps):
@@ -31,8 +31,8 @@ def load_image(map, height):
     if m is not None:
         img = m.load(cropped = True)
 
-        # Create and return a map image window
-        win = MapWindow(m.fname, img, m.points, m.corners, height = height)
+        # Create and return an annotation window
+        win = AnnotationWindow(getModifiedName(m.fname), img, m.points, m.corners, height = height)
         return win
 
     return None 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
             img.display()
         
             # Waiting for user input (and handle the input)
-            key = cv2.waitKeyEx(1) & 0xFF
+            key = cv2.waitKeyEx(10) & 0xFF
             if key == 27 or key == ord('Q') or key == ord('q'): 
                 cv2.destroyAllWindows()
                 break
@@ -103,5 +103,5 @@ if __name__ == '__main__':
 
     except FileNotFoundError as e:
         print("Error: Could not open data file 'kartdata.json' as result of intial 'preperation.py'.")
-        print("Error: Run inital preperation and confirm that the file 'kartdata.json' is located in path: {}".format(args.path))
+        print("Run inital preperation and confirm that the file 'kartdata.json' is located in path: {}".format(args.path))
 
