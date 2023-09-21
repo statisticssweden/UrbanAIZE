@@ -2,16 +2,16 @@ import torch
 import torch.nn as nn
 from .block import DoubleConvBlock, UpConvBlock
 
-# U-Net++ model
+# U-Net++ model - To be updated
 class UNet2Plus(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, input_dim, output_dim):
         super(UNet2Plus, self).__init__()
 
         # Joint pool layer
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Encoder pathway
-        self.encoder1 = DoubleConvBlock(in_channels, 64)
+        self.encoder1 = DoubleConvBlock(input_dim, 64)
         self.encoder2 = DoubleConvBlock(64, 128)
         self.encoder3 = DoubleConvBlock(128, 256)
         self.encoder4 = DoubleConvBlock(256, 512)
@@ -26,7 +26,7 @@ class UNet2Plus(nn.Module):
         self.decoder1 = UpConvBlock(128, 64)
 
         # Output layer
-        self.outconv = nn.Conv2d(64, out_channels, kernel_size=1)
+        self.outconv = nn.Conv2d(64, output_dim, kernel_size=1)
 
     def forward(self, x):
         enc1 = self.encoder1(x)
@@ -41,5 +41,4 @@ class UNet2Plus(nn.Module):
         dec2 = self.decoder2(dec3, enc2)
         dec1 = self.decoder1(dec2, enc1)
 
-        output = self.outconv(dec1)
-        return output
+        return self.outconv(dec1)
