@@ -14,7 +14,7 @@ from map_image import MapImage
 from window.annotation import AnnotationWindow
 from utils import getModifiedName
 
-# Randomly select a map image
+# Randomly select a map
 def randomly_select(maps):
     if maps['images']:
         map = maps['images'].pop(random.randrange(len(maps['images'])))
@@ -23,17 +23,19 @@ def randomly_select(maps):
         return randomly_select(maps)
     return None
 
-# Load random image and create image window
-def load_image(map, height):
+# Load random map image and create image window
+def load_image(map, path, height):
 
     # Randomly load map image
-    m = randomly_select(maps)
-    if m is not None:
-        img = m.load(cropped = True)
+    map = randomly_select(maps)
+    if map is not None:
 
         # Create and return an annotation window
-        win = AnnotationWindow(getModifiedName(m.fname), img, m.points, m.corners, height = height)
-        return win
+        image = map.load(cropped = True)
+        name = getModifiedName(map.fname).split('.')[0]
+        window = AnnotationWindow(name, path, image, map.points, map.corners, height = height)
+
+        return map.fname, window
 
     return None 
 
@@ -64,7 +66,7 @@ if __name__ == '__main__':
                          type = int )
     parser.add_argument( '--size', '-sz',
                          help = 'image sample size',
-                         default = 256,
+                         default = 512,
                          type = int )
     args = parser.parse_args()
     data_file = os.path.join(args.path, 'kartdata.json')
@@ -74,32 +76,30 @@ if __name__ == '__main__':
         with open(data_file, 'r+') as f:
             maps = json.load(f)
 
-        # Load map image
-        img = load_image(maps, args.height)
+        # Load map annotation window
+        fname, window = load_image(maps, args.path, args.height)
         
         # Main display loop
         while(True):
 
             # Saftey check
-            if img is None:
+            if window is None:
                 break
 
-            # Display map image
-            img.display()
+            # Display map annotation window
+            window.display()
         
             # Waiting for user input (and handle the input)
-            key = cv2.waitKeyEx(10) & 0xFF
-            if key == 27 or key == ord('Q') or key == ord('q'): 
+            key = cv2.waitKeyEx(1) & 0xFF
+            if key == 27: 
                 cv2.destroyAllWindows()
                 break
             elif key == ord('M') or key == ord('m') or key == ord('N') or key == ord('n'):
-                update_data(data_file, img.fname, img.corners)
-                if key == ord('M') or key == ord('m'):
-                    img.random_sample(args.path, samples = args.samples, sz = args.size)
-                    img.close()
-                    img = load_image(maps, args.height)
+                update_data(data_file, fname, window.offset)
+                window.close()
+                fname, window = load_image(maps, args.path, args.height)
             else:
-                img.key_handler(key)
+                window.key_handler(key)
 
     except FileNotFoundError as e:
         print("Error: Could not open data file 'kartdata.json' as result of intial 'preperation.py'.")
