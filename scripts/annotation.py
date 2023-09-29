@@ -24,7 +24,7 @@ def randomly_select(maps):
     return None
 
 # Load random map image and create image window
-def load_image(map, path, height):
+def load_image(map, path, height, sz):
 
     # Randomly load map image
     map = randomly_select(maps)
@@ -32,8 +32,9 @@ def load_image(map, path, height):
 
         # Create and return an annotation window
         image = map.load(cropped = True)
+        print("Loaded map image: {}".format(map.fname))
         name = getModifiedName(map.fname).split('.')[0]
-        window = AnnotationWindow(name, path, image, map.points, map.corners, height = height)
+        window = AnnotationWindow(name, path, image, map.points, map.corners, height = height, sz = sz)
 
         return map.fname, window
 
@@ -60,13 +61,9 @@ if __name__ == '__main__':
                          help = 'fixed image height',
                          default = 1080,
                          type = int )
-    parser.add_argument( '--samples', '-s',
-                         help = 'number of samples',
-                         default = 1000,
-                         type = int )
     parser.add_argument( '--size', '-sz',
-                         help = 'image sample size',
-                         default = 512,
+                         help = 'sample image patch size',
+                         default = 256,
                          type = int )
     args = parser.parse_args()
     data_file = os.path.join(args.path, 'kartdata.json')
@@ -77,7 +74,7 @@ if __name__ == '__main__':
             maps = json.load(f)
 
         # Load map annotation window
-        fname, window = load_image(maps, args.path, args.height)
+        fname, window = load_image(maps, args.path, args.height, args.size)
         
         # Main display loop
         while(True):
@@ -97,7 +94,7 @@ if __name__ == '__main__':
             elif key == ord('M') or key == ord('m') or key == ord('N') or key == ord('n'):
                 update_data(data_file, fname, window.offset)
                 window.close()
-                fname, window = load_image(maps, args.path, args.height)
+                fname, window = load_image(maps, args.path, args.height, args.size)
             else:
                 window.key_handler(key)
 

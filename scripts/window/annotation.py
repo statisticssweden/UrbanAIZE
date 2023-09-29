@@ -145,24 +145,23 @@ class AnnotationSubWindow(Window):
 
         @clicked.setter
         def clicked(self, value) -> None:
-            #print("clicked.setter", self.__clicked)
             self.__clicked = value
         
         # Check if coordinates is contianed within the square
-        def contains(self, x, y):
+        def contains(self, x, y) -> bool:
             if x >= self.x and x < self.w and y >= self.y and y < self.h:
                 return True
             return False
 
         # Get name including unique x- and y coordinates
-        def get_name(self, x, y, padding):
-            return "{}_{}".format((x - padding) + self.x, (y - padding) + self.y)
+        def get_name(self, x, y, padding) -> str:
+            return "x{}_y{}".format((x - padding) + self.x, (y - padding) + self.y)
         
 # ------------------
 # Window class for handle the annotation of map images
 # -----------------------------------------------------------
 class AnnotationWindow(Window):
-    def __init__(self, name, path, img, points, offset, height, thickness = 10, sz = 512, n = 3) -> None:
+    def __init__(self, name, path, img, points, offset, height, sz = 256, n = 3, thickness = 10, ) -> None:
         super().__init__(name, img)
         self.path = path
         (self.h, self.w) = self.img.shape[:2]
@@ -268,9 +267,11 @@ class AnnotationWindow(Window):
             if chr(key) in 'SsRrQq':
                 if key == ord('R') or key == ord('r'):
                     self.sub_window.clear()
+                    print("Stored image pairs cleared...")
                 else:
                     if key == ord('S') or key == ord('s'):
                         self.__save(self.sub_window.data)
+                        print("Saved {} image pairs to files...".format(len(self.sub_window.data)))
                     self.sub_window.close()
                     self.sub_window = None
         else:
@@ -300,7 +301,7 @@ class AnnotationWindow(Window):
     # ----------------------------
     
     # Get map area corners
-    def __get_corners(self, th = 100.):
+    def __get_corners(self, th = 100.) -> None:
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 1000, 0.001)
 
         # Detect top left corner
@@ -329,7 +330,7 @@ class AnnotationWindow(Window):
             self.__ofset['w'], self.__ofset['h'] = int(corners[int(idx)][0] - self.__ofset['x']), int(corners[int(idx)][1] - self.__ofset['y'])
 
     # Save imaged and meta data to files
-    def __save(self, data):
+    def __save(self, data) -> None:
 
         # Read meta data file
         fmeta = os.path.join(self.path, 'data', 'meta.json')
@@ -345,13 +346,13 @@ class AnnotationWindow(Window):
             }
 
         # Iterate data dictonary and save to disc
-        for fname, data in data.items():
+        for fname in data.keys():
 
             # Write image patches to files
             fimage = "{}_image.png".format(fname)
             flabels = "{}_labels.png".format(fname)
-            cv2.imwrite(os.path.join(meta_data['path'], fimage), data['image'])
-            cv2.imwrite(os.path.join(meta_data['path'], flabels), data['labels'])
+            cv2.imwrite(os.path.join(meta_data['path'], fimage), data[fname]['image'])
+            cv2.imwrite(os.path.join(meta_data['path'], flabels), data[fname]['labels'])
 
             # Add file names to meta data
             meta_data['pairs'].append({'image': fimage, 'labels': flabels})
