@@ -6,9 +6,9 @@ from collections import defaultdict
 
 from tqdm import tqdm
 
-from utils import getRT90
+from .utils import getRT90
 
-class MapImage(dict):
+class Image(dict):
     '''
     This class is used to load map images and to further sort them into folders.
 

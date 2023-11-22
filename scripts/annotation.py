@@ -1,18 +1,17 @@
 #!/usr/bin/python3
-
-"""" Main annotation script. """
-
 import os
 import argparse
-import geopandas as gpd
 import json
 import random
 import numpy as np
 import cv2
-import time
-from map_image import MapImage
+from map.image import Image
+from map.utils import getModifiedName
 from window.annotation import AnnotationWindow
-from utils import getModifiedName
+
+'''
+Main annotation script. 
+'''
 
 # Randomly select a map
 def randomly_select(maps):
