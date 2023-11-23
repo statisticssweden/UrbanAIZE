@@ -57,6 +57,10 @@ if __name__ == '__main__':
                          help = 'year of interest',
                          default = '1980',
                          type = str )
+    parser.add_argument( '--approach', '-a',
+                         help = 'preperation approach (auto, manual, or single)',
+                         default = 'single',
+                         type = str )
     args = parser.parse_args()
     data_file = os.path.join(args.path, 'kartdata.json')
     directories = []
@@ -114,21 +118,43 @@ if __name__ == '__main__':
 
     # Detect the map (square) image of interest
     for map in tqdm(maps['images']):
-        try:
-            print(f"Map image: {map.fname}")
-            img = map.load()
-            area = detectMapArea(img = img, length = args.length)
-            print(f"Map area: {area}")
-            if area is not None:
-                if map.area is None:
-                    map.area = area
-                else:
-                    map.area = findBestSquare([area, map.area])
+
+        # Load map image
+        print(f"Map image: {map.fname}")
+        img = map.load()
+
+        # Run single map area detection
+        if args.approach == 'single':
+            try:
+                area = detectMapArea(img = img, length = args.length)
+                if area is not None:
+                    if map.area is None:
+                        map.area = area
+                    else:
+                        map.area = findBestSquare([area, map.area])
+            except Exception as e:
+                print(f"Error: {e}")
+
+        # Run automatic map area detection
+        elif args.approach == 'auto':
+            for length in tqdm(range(2500, 3500, 100)):
+                try:
+                    area = detectMapArea(img = img, length = length)
+                    if area is not None:
+                        if map.area is None:
+                            map.area = area
+                        else:
+                            map.area = findBestSquare([area, map.area])
+                except Exception as e:
+                    print(f"Error: {e}")
+
+        # Print area and score
+        if map.area is not None:
             print(f"Best area: {map.area}")
             print(f"Best score: {squareness(map.area)}")
-            print("---------------------------")
-        except Exception as e:
-            print(f"Error: {e}")
+                
+        print("---------------------------")
+                    
 
     # Save meta data to file
     with open(data_file, 'w+', encoding = 'utf8') as f:
