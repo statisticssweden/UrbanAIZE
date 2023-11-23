@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .block import DoubleConvBlock, UpConvBlock
+from .block import DoubleConvBlock, UpDoubleConvBlock
 
 # U-Net++ model
 class UNet2Plus(nn.Module):
@@ -18,13 +18,13 @@ class UNet2Plus(nn.Module):
 
         # Bottleneck
         self.bottleneck = DoubleConvBlock(512, 1024)
-
+        '''
         # Decoder pathway
         self.decoder4 = UpConvBlock(1024, 512)
         self.decoder3 = UpConvBlock(512, 256)
         self.decoder2 = UpConvBlock(256, 128)
         self.decoder1 = UpConvBlock(128, 64)
-
+        '''
         # Output layer
         self.outconv = nn.Conv2d(64, out_channels, kernel_size=1)
 
@@ -35,11 +35,11 @@ class UNet2Plus(nn.Module):
         enc4 = self.encoder4(self.pool(enc3))
 
         bottleneck = self.bottleneck(self.pool(enc4))
-
+        '''
         dec4 = self.decoder4(bottleneck, enc4)
         dec3 = self.decoder3(dec4, enc3)
         dec2 = self.decoder2(dec3, enc2)
         dec1 = self.decoder1(dec2, enc1)
-
+        '''
         output = self.outconv(dec1)
         return output
