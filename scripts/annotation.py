@@ -17,8 +17,8 @@ Main annotation script.
 def randomly_select(maps):
     if maps['images']:
         map = maps['images'].pop(random.randrange(len(maps['images'])))
-        if 'area' in map:
-            return MapImage(map)
+        if 'area' in map and 'points' in map:
+            return Image(map)
         return randomly_select(maps)
     return None
 
@@ -30,24 +30,24 @@ def load_image(map, path, height, sz):
     if map is not None:
 
         # Create and return an annotation window
-        image = map.load(cropped = True)
+        img = map.load(cropped = True)
         print("Loaded map image: {}".format(map.fname))
         name = getModifiedName(map.fname).split('.')[0]
-        window = AnnotationWindow(name, path, image, map.points, map.corners, height = height, sz = sz)
+        window = AnnotationWindow(name, path, img, map.points, map.corners, height = height, sz = sz)
 
         return map.fname, window
 
     return None 
 
 # Update map data file
-def update_data(path, fname, corners):
-    with open(path, 'r') as f:
+def update_data(data_file, fname, corners):
+    with open(data_file, 'r') as f:
         maps = json.load(f)
     for map in maps['images']:
         if map['fname'] == fname:
             map['corners'] = corners
-    with open(path, 'w') as f:
-        json.dump(maps, f, indent = 2)
+    with open(data_file, 'w', encoding = 'utf8') as f:
+        json.dump(maps, f, indent = 2, ensure_ascii=False)
 
 # Conditional main
 if __name__ == '__main__':
@@ -100,4 +100,8 @@ if __name__ == '__main__':
     except FileNotFoundError as e:
         print("Error: Could not open data file 'kartdata.json' as result of intial 'preperation.py'.")
         print("Run inital preperation and confirm that the file 'kartdata.json' is located in path: {}".format(args.path))
+    except TypeError as e:
+        print("No more map images to annotate... ")
+        
+        
 

@@ -275,23 +275,24 @@ class AnnotationWindow(Window):
                     self.sub_window.close()
                     self.sub_window = None
         else:
+            minor, major = 5, 15
             if chr(key) in 'WwSsAaDdIiKkJjLl':
-                if key == ord('W'):   self.offset['y'] = self.offset['y'] - 10
-                elif key == ord('w'): self.offset['y'] = self.offset['y'] - 1
-                elif key == ord('S'): self.offset['y'] = self.offset['y'] + 10
-                elif key == ord('s'): self.offset['y'] = self.offset['y'] + 1
-                elif key == ord('A'): self.offset['x'] = self.offset['x'] - 10
-                elif key == ord('a'): self.offset['x'] = self.offset['x'] - 1
-                elif key == ord('D'): self.offset['x'] = self.offset['x'] + 10
-                elif key == ord('d'): self.offset['x'] = self.offset['x'] + 1
-                elif key == ord('J'): self.offset['w'] = self.offset['w'] - 10
-                elif key == ord('j'): self.offset['w'] = self.offset['w'] - 1
-                elif key == ord('L'): self.offset['w'] = self.offset['w'] + 10
-                elif key == ord('l'): self.offset['w'] = self.offset['w'] + 1
-                elif key == ord('I'): self.offset['h'] = self.offset['h'] - 10
-                elif key == ord('i'): self.offset['h'] = self.offset['h'] - 1
-                elif key == ord('K'): self.offset['h'] = self.offset['h'] + 10
-                elif key == ord('k'): self.offset['h'] = self.offset['h'] + 1
+                if key == ord('W'):   self.offset['y'] = self.offset['y'] - major
+                elif key == ord('w'): self.offset['y'] = self.offset['y'] - minor
+                elif key == ord('S'): self.offset['y'] = self.offset['y'] + major
+                elif key == ord('s'): self.offset['y'] = self.offset['y'] + minor
+                elif key == ord('A'): self.offset['x'] = self.offset['x'] - major
+                elif key == ord('a'): self.offset['x'] = self.offset['x'] - minor
+                elif key == ord('D'): self.offset['x'] = self.offset['x'] + major
+                elif key == ord('d'): self.offset['x'] = self.offset['x'] + minor
+                elif key == ord('J'): self.offset['w'] = self.offset['w'] - major
+                elif key == ord('j'): self.offset['w'] = self.offset['w'] - minor
+                elif key == ord('L'): self.offset['w'] = self.offset['w'] + major
+                elif key == ord('l'): self.offset['w'] = self.offset['w'] + minor
+                elif key == ord('I'): self.offset['h'] = self.offset['h'] - major
+                elif key == ord('i'): self.offset['h'] = self.offset['h'] - minor
+                elif key == ord('K'): self.offset['h'] = self.offset['h'] + major
+                elif key == ord('k'): self.offset['h'] = self.offset['h'] + minor
 
                 # Update the map image
                 self.update()
@@ -311,11 +312,11 @@ class AnnotationWindow(Window):
         ret, labels, stats, centroids = cv2.connectedComponentsWithStats(np.uint8(dst))
         corners = cv2.cornerSubPix( gray, np.float32(centroids), (15,15), (-1,-1), criteria)
         corners = [(self.w * 0.01 + point[0], self.h * 0.01 + point[1]) for point in corners]
-        distances = [ np.sqrt((point[0] - self.__ofset['x']) ** 2 + (point[1] - self.__ofset['y']) ** 2 ) for point in corners]
+        distances = [ np.sqrt((point[0] - self.__offset['x']) ** 2 + (point[1] - self.__offset['y']) ** 2 ) for point in corners]
         distances = np.array(distances)
         idx = np.where(distances == np.min(distances))[0]
         if idx and distances[int(idx)] < th: 
-            self.__ofset['x'], self.__ofset['y'] = int(corners[int(idx)][0]), int(corners[int(idx)][1])
+            self.__offset['x'], self.__offset['y'] = int(corners[int(idx)][0]), int(corners[int(idx)][1])
 
         # Detect bottom right corner
         gray = cv2.cvtColor(self.img[int(self.h * 0.9):int(self.h * 0.99), int(self.w * 0.9):int(self.w * 0.99)],cv2.COLOR_BGR2GRAY)
@@ -324,10 +325,10 @@ class AnnotationWindow(Window):
         ret, labels, stats, centroids = cv2.connectedComponentsWithStats(np.uint8(dst))
         corners = cv2.cornerSubPix( gray, np.float32(centroids), (15,15), (-1,-1), criteria)
         corners = [(self.w * 0.9 + point[0], self.h * 0.9 + point[1]) for point in corners]
-        distances = [ np.sqrt((point[0] - (self.__ofset['x'] + self.__ofset['w'])) ** 2 + (point[1] - (self.__ofset['y'] + self.__ofset['h'])) ** 2 ) for point in corners]
+        distances = [ np.sqrt((point[0] - (self.__offset['x'] + self.__offset['w'])) ** 2 + (point[1] - (self.__offset['y'] + self.__offset['h'])) ** 2 ) for point in corners]
         idx = np.where(distances == np.min(distances))[0]
         if idx and distances[int(idx)] < th: 
-            self.__ofset['w'], self.__ofset['h'] = int(corners[int(idx)][0] - self.__ofset['x']), int(corners[int(idx)][1] - self.__ofset['y'])
+            self.__offset['w'], self.__offset['h'] = int(corners[int(idx)][0] - self.__offset['x']), int(corners[int(idx)][1] - self.__offset['y'])
 
     # Save imaged and meta data to files
     def __save(self, data) -> None:
