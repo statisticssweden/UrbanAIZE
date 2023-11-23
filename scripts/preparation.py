@@ -1,37 +1,41 @@
-'''
-This file prepares all the necessary data required to predict and vectorize "Tätortsgränser".
-In particualr, this file:  
-
-1. Extracts the rt90 coordinates of maps labeled "Ekonomiska" and "Fastighet".
-
-
-Sorts the images into classes, 
-extracts the rt90 coordinates of maps labeled "Ekonomiska" and "Fastighet", crops out the inner squares and finally gets the coordinates of those squares.
-With this prepared, you will have sorted folders and data files with all the important information. And can thereafter annotate own data
-to train a new model, or use the existing model to find the tätorter. 
-
-note, for this to work you need to change the folder name "Digitalisering_AI" manually in the file explorer to "Digitalisering_AI_1". This changes
-the permissions of the folder to allow changes. If your image folder is not called "Digitalisering_AI" you should still rename the directory to 
-Digitalisering_AI_1, since the code is fitted for that name.
-
-If you have troubles with already existing folders, try to delete "data/", "failed_squares/", "preds/", and "squares/"
-'''
-
 #!/usr/bin/python3
-
 import argparse
 import pandas as pd
 import json
-import os
-import shutil
-from utils import getModifiedName, sr99Tort90
-from map_image import MapImage
+import os, os.path, shutil
+from map.utils import getModifiedName, sr99Tort90
+from map.image import Image
+from map.area import detectMapArea, findBestSquare, squareness
 from tqdm import tqdm
 import cv2
 import geopandas as gpd
 import math
 import numpy as np
 
+''' 
+Main preperation script. 
+'''
+
+# Check if map images already exist in collection
+def existing_map_image(maps, img) -> bool:
+    for map in maps['images']:
+        if map.fname == img.fname:
+            return True
+    return False
+
+# Load existing data file (if exist)
+def load_data(data_file) -> dict:
+    maps = { 'images': [] }
+    if os.path.isfile(data_file):
+        with open(data_file, 'r') as f:
+            data = json.load(f)
+        for map in data['images']:
+            img = Image(map)
+            if os.path.isfile(img.filepath()):
+                print("Loaded map image: {}".format(img.fname))
+                maps['images'].append(img)
+    return maps
+        
 # Conditional main
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data preperation pipeline.')
@@ -54,6 +58,7 @@ if __name__ == '__main__':
                          default = '1980',
                          type = str )
     args = parser.parse_args()
+    data_file = os.path.join(args.path, 'kartdata.json')
     directories = []
     for dir in ['data']:
         directories.append(os.path.join(args.path, dir))
@@ -63,31 +68,31 @@ if __name__ == '__main__':
         for dir in directories:
             if os.path.exists(dir) and args.remove:
                 shutil.rmtree(dir)
-    
+
+    '''
     # Replace all the special characters in file and folder names (e.g. ÅÄÖ).
     for path, subdir, files in os.walk(args.path, topdown=False):
         for file in files:      
             os.rename( os.path.join(path, file), os.path.join(path, getModifiedName(file)))
         for folder in subdir:
             os.rename( os.path.join(path, folder), os.path.join(path, getModifiedName(folder)))
-
+    '''
+    
     # Create the structure of directories
     for dir in directories:
         if not os.path.exists(dir):
             os.mkdir(dir)
 
-    # Process all map images (including extracting map categories)
-    maps = {
-        'images': [],
-    }
+    # Load all map images and add new map images
+    maps = load_data(data_file)
     for root, dirs, files in os.walk(args.path):
         if root in directories:
             continue
         for file in tqdm(files):
-            map = MapImage(root, file)
-            if not map.valid():
-                continue
-            maps['images'].append(map)
+            img = Image(root, file)
+            if img.valid() and not existing_map_image(maps, img):
+                print("Added map image: {}".format(img.fname))
+                maps['images'].append(img)
 
     # Open geodata database (from year 1980, default)
     try:
@@ -97,24 +102,37 @@ if __name__ == '__main__':
         print(gdf)
         for points in gdf['points']:
             if points:
-                y, x = sr99Tort90(points[0][1], points[0][0]) #translate to rt90
-                y = np.floor((y / 1000) / 5) * 5 #floor to nearest 5. if 6349.3492342934 -> 6345
-                x = np.floor((x / 1000) / 5) * 5 #floor to nearest 5. if 1578.3492342984 -> 1575
+                y, x = sr99Tort90(points[0][1], points[0][0]) # translate to rt90
+                y = np.floor((y / 1000) / 5) * 5 # floor to nearest 5. if 6349.3492342934 -> 6345
+                x = np.floor((x / 1000) / 5) * 5 # floor to nearest 5. if 1578.3492342984 -> 1575
                 for map in maps['images']:
-                    if map.check_coordinates(x, y):
+                    if map.checkRT90coordinates(x, y):
                         map.points = [sr99Tort90(p[1], p[0]) for p in points]
     except:
-        print("Error: Could not open database file 'Tatorter_1980_2020.gpkg', make sure the database file is located in path: {}".format(args.path))
+        print("Error: Could not open database file 'Tatorter_1980_2020.gpkg'.")
+        print("Make sure the database file is located in path: {}".format(args.path))
 
     # Detect the map (square) image of interest
     for map in tqdm(maps['images']):
         try:
-            map.detect_map_area(length = args.length)
-        except:
-            pass
+            print(f"Map image: {map.fname}")
+            img = map.load()
+            area = detectMapArea(img = img, length = args.length)
+            print(f"Map area: {area}")
+            if area is not None:
+                if map.area is None:
+                    map.area = area
+                else:
+                    map.area = findBestSquare([area, map.area])
+            print(f"Best area: {map.area}")
+            print(f"Best score: {squareness(map.area)}")
+            print("---------------------------")
+        except Exception as e:
+            print(f"Error: {e}")
 
-        with open(os.path.join(args.path, 'kartdata.json'), 'w+', encoding = 'utf8') as f:
-            json.dump(maps, f, indent = 2, ensure_ascii=False)
+    # Save meta data to file
+    with open(data_file, 'w+', encoding = 'utf8') as f:
+        json.dump(maps, f, indent = 2, ensure_ascii=False)
 
     '''
     # Crop all map images of category 'Ekonomisk' 

@@ -15,6 +15,7 @@ from torchsummary import summary
 from dataset import ImagePairDataset
 from model.unet import UNet
 from model.unet2plus import UNet2Plus
+from model.residual_unet import ResidualUNet
 
 # Conditional main
 if __name__ == '__main__':
@@ -24,16 +25,16 @@ if __name__ == '__main__':
                          default = './data/',
                          type = str )
     parser.add_argument( '--model', '-m',
-                         help = 'model to use (unet, unet2plus, or unet3plus)',
+                         help = 'model to use (unet, unet2plus, unet3plus, or residual_unet)',
                          default = 'unet',
                          type = str )
     parser.add_argument( '--epochs',
                          help = 'numer of training epochs',
-                         default = 100,
+                         default = 1000,
                          type = int )
     parser.add_argument( '--batch_size',
                          help = 'batch size for training dataset',
-                         default = 4,
+                         default = 8,
                          type = int )
     parser.add_argument( '--num_workers',
                          help = 'number of paralell workers',
@@ -85,6 +86,8 @@ if __name__ == '__main__':
     out_channels = 1  # Number of output channels (e.g., segmentation mask)
     if args.model == 'unet2plus':
         model = UNet2Plus(in_channels, out_channels)
+    elif args.model == 'residual_unet':
+        model = ResidualUNet(in_channels, out_channels)
     else:
         model = UNet(in_channels, out_channels)
     model.to(device)
