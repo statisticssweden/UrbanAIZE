@@ -1,19 +1,21 @@
 #!/usr/bin/python3
-import argparse
-import pandas as pd
-import json
 import os, os.path, shutil
+import argparse
+import json
+import cv2
+import numpy as np
+import pandas as pd
+import geopandas as gpd
+
+from tqdm import tqdm
+
 from map.utils import getModifiedName, sr99Tort90
 from map.image import Image
 from map.area import detectMapArea, findBestSquare, squareness
-from tqdm import tqdm
-import cv2
-import geopandas as gpd
-import math
-import numpy as np
+from window.preparation import PreparationWindow
 
 ''' 
-Main preperation script. 
+Main preparation script. 
 '''
 
 # Check if map images already exist in collection
@@ -38,13 +40,17 @@ def load_data(data_file) -> dict:
         
 # Conditional main
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Data preperation pipeline.')
+    parser = argparse.ArgumentParser(description='Data preparation pipeline.')
     parser.add_argument( '--display', '-d', 
                          action = 'store_true', default=False,
                          help = 'display a result image')
     parser.add_argument( '--length', '-l',
                          help = 'map line length',
                          default = '2500',
+                         type = int )
+    parser.add_argument( '--height',
+                         help = 'fixed image height',
+                         default = 1080,
                          type = int )
     parser.add_argument( '--path', '-p',
                          help = 'path to data folder',
@@ -58,7 +64,7 @@ if __name__ == '__main__':
                          default = '1980',
                          type = str )
     parser.add_argument( '--approach', '-a',
-                         help = 'preperation approach (auto, manual, or single)',
+                         help = 'preparation approach (auto, manual, or single)',
                          default = 'single',
                          type = str )
     args = parser.parse_args()
@@ -124,20 +130,29 @@ if __name__ == '__main__':
         img = map.load()
 
         # Run single map area detection
-        if args.approach == 'single':
-            try:
-                area = detectMapArea(img = img, length = args.length)
-                if area is not None:
-                    if map.area is None:
-                        map.area = area
-                    else:
-                        map.area = findBestSquare([area, map.area])
-            except Exception as e:
-                print(f"Error: {e}")
+        if args.approach == 'manual':
+            name = getModifiedName(map.fname).split('.')[0]
+            window = PreparationWindow(name, img, map.area, height = args.height)
 
+            # Main display loop
+            while(True):
+
+                # Display map preparation window
+                window.display()
+        
+                # Waiting for user input (and handle the input)
+                key = cv2.waitKeyEx(1) & 0xFF
+                if key == 27:
+                    cv2.destroyAllWindows()
+                    break
+                elif chr(key) in 'SsQq':
+                    window.close()
+                    map.area = window.area
+                    break
+            
         # Run automatic map area detection
         elif args.approach == 'auto':
-            for length in tqdm(range(2500, 3500, 100)):
+            for length in tqdm(range(2000, 3500, 100)):
                 try:
                     area = detectMapArea(img = img, length = length)
                     if area is not None:
@@ -147,6 +162,19 @@ if __name__ == '__main__':
                             map.area = findBestSquare([area, map.area])
                 except Exception as e:
                     print(f"Error: {e}")
+
+        # Run single map area detection
+        else:
+
+            try:
+                area = detectMapArea(img = img, length = args.length)
+                if area is not None:
+                    if map.area is None:
+                        map.area = area
+                    else:
+                        map.area = findBestSquare([area, map.area])
+            except Exception as e:
+                print(f"Error: {e}")
 
         # Print area and score
         if map.area is not None:

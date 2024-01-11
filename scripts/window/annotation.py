@@ -40,7 +40,7 @@ class AnnotationSubWindow(Window):
     def data(self) -> dict:
         return self.__data
         
-    # Dispaly map image (and annotation sub images)
+    # Display map image (and annotation sub images)
     def display(self) -> None:
         super().display()
         cv2.resizeWindow(self.name, (self.sz * self.n, self.sz * self.n))

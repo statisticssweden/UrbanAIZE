@@ -16,7 +16,6 @@ class SingleConvBlock(nn.Module):
             return self.relu(self.bn(self.conv(x)))
         return self.relu(self.conv(x))
 
-
 class UpSingleConvBlock(nn.Module):
     def __init__(self, input_dim, output_dim, kernel_size=2, stride=2, padding=0, up_mode='transpose'):
         super(UpSingleConvBlock, self).__init__()
@@ -42,7 +41,6 @@ class DoubleConvBlock(nn.Module):
 
     def forward(self, x):
         return self.dconvb2(self.dconvb1(x))
-
 
 class UpDoubleConvBlock(nn.Module):
     def __init__(self, input_dim, output_dim, kernel_size=2, stride=2, padding=0, up_mode='transpose'):
@@ -152,8 +150,5 @@ class UpResidualConvBlock(nn.Module):
 
     def forward(self, x, skip_x):
         y = self.up(x)
-        if custom_padding:
-            d_x, d_y = skip_x.size()[3] - y.size()[3], skip_x.size()[2] - y.size()[2] # Input is CHW
-            y = nn.functional.pad(y, [d_x // 2, d_x - d_x // 2, d_y // 2, d_y - d_y // 2])
         y = torch.cat([y, skip_x], dim=1)
         return self.res_conv(y)

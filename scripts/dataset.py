@@ -14,8 +14,8 @@ class ImagePairDataset(Dataset):
     # Load the input and target images
     def __getitem__(self, index):
 
-        input_image = Image.open(os.path.join(self.path, self.data['pairs'][index]['img']))
-        target_image = Image.open(os.path.join(self.path, self.data['pairs'][index]['mask']))
+        input_image = Image.open(os.path.join(self.path, self.data['pairs'][index]['image']))
+        target_image = Image.open(os.path.join(self.path, self.data['pairs'][index]['labels']))
 
         # Apply transformations if provided
         if self.transform is not None:

@@ -10,7 +10,8 @@ from collections import defaultdict
 def detectMapArea(img: np.ndarray, length: int = 1000) -> np.array:
     
     # Detect edges
-    edges = detectEgdes(img)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = detectEgdes(gray, sz = 3, th1 = 30, th2 = 220)
 
     # Finds linear edges (longer than 'length' pixels)
     lines = cv2.HoughLines(edges, 1, np.pi/180, length)
@@ -53,21 +54,21 @@ def squareness(corners):
     diagonal_lengths = [np.linalg.norm(vectors[i]) for i in range(4, 6)]
 
     # Calculate the sum of differences between sides
-    side_diff_sum = sum(abs(side_lengths[i] - side_lengths[(i + 1) % 4]) for i in range(4))
+    side_diff_sum = sum(1. - abs(side_lengths[i] / side_lengths[(i + 1) % 4]) for i in range(4))
 
     # Calculate the sum differences between diagonals and diagonal of squares
     diagonal_diff_sum = sum([
-        abs(diagonal_lengths[0] - diagonal_lengths[1]),
-        abs(diagonal_lengths[0] - side_lengths[2] * np.sqrt(2.)),
-        abs(diagonal_lengths[1] - side_lengths[3] * np.sqrt(2.))
-    ])
+        1. - abs(diagonal_lengths[0] / diagonal_lengths[1]),
+        1. - abs(diagonal_lengths[0] / (side_lengths[2] * np.sqrt(2.))),
+        1. - abs(diagonal_lengths[1] / (side_lengths[3] * np.sqrt(2.)))
+    ]) 
         
     # Calculate angle differences between adjacent sides (should be close to 90 degrees)
     dot_products = [np.dot(vectors[i], vectors[(i + 1) % 4]) for i in range(4)]
     angle_diff_sum = sum(abs(dot_products[i]) for i in range(4))
 
     # Combine length and angle differences into a single score
-    return side_diff_sum + diagonal_diff_sum + angle_diff_sum
+    return abs(side_diff_sum + diagonal_diff_sum + angle_diff_sum)
     
     '''
     # Calculate vectors between corners points 
@@ -106,19 +107,21 @@ def findBestSquare(squares):
 # -----------------------
                     
 # Detect all image edges.
-def detectEgdes(img: np.ndarray, sz: int = 5) -> np.ndarray:
-
+def detectEgdes(img: np.ndarray, sz: int = -1, th1: int = 25, th2: int = 225) -> np.ndarray:
+    img = cv2.GaussianBlur(img, (sz,sz), 0) if sz > 0 else img
+    
     # Canny Edge Detection (with Gaussian blur for better detection)
-    edges = cv2.Canny( image = cv2.GaussianBlur(img, (sz,sz), 0), 
-                       threshold1 = 50, 
-                       threshold2 = 230, 
+    edges = cv2.Canny( image = img, 
+                       threshold1 = th1, 
+                       threshold2 = th2, 
                        apertureSize = 3, 
                        L2gradient = True )
-
+    
     # Postprocess the detected egdes with dilation filter
-    kernel = np.ones((sz, sz), np.float32)
-    return cv2.dilate(edges, kernel, iterations=1)
-
+    if sz > 0:
+        kernel = cv2.getStructuringElement( cv2.MORPH_ELLIPSE, (2 * sz + 1, 2 * sz + 1), (sz, sz))
+        edges = cv2.dilate(edges, kernel)
+    return edges
 
 # Group lines based on angles (with k-means clustering).
 def groupByAngleKmeans(lines, k=2, **kwargs) -> list:
