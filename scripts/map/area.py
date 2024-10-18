@@ -7,30 +7,34 @@ from collections import defaultdict
 # --------------------
 
 # Detect the map area of a map image
-def detectMapArea(img: np.ndarray, length: int = 1000) -> np.array:
+def detectMapArea(img: np.ndarray, th: int = 1000) -> np.array:
     
     # Detect edges
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     edges = detectEgdes(gray, sz = 3, th1 = 30, th2 = 220)
 
-    # Finds linear edges (longer than 'length' pixels)
-    lines = cv2.HoughLines(edges, 1, np.pi/180, length)
+    # Finds linear edges
+    lines = cv2.HoughLines(edges, 1, np.pi/90, th)
 
     # Cluster line angles into 2 groups (vertical and horizontal)
     if lines is not None:
         groups = groupByAngleKmeans(lines)
 
         # Find the intersections of each vertical line with each horizontal line
-        intersections = segmentIntersections(groups)
-        if intersections:
-            points = filterIntersections(intersections, img.shape[0], img.shape[1])
-
-            # Check if interesction points form an (almost) perfect square
-            if square(points):
-                area = {}
-                for key, value in points.items():
-                    area[key] = (int(value[0]), int(value[1])) 
-                return area
+        try:
+            intersections = segmentIntersections(groups)
+            if intersections:
+                points = filterIntersections(intersections, img.shape[0], img.shape[1])
+            
+                # Check if interesction points form an (almost) perfect square
+                if square(points):
+                    area = {}
+                    for key, value in points.items():
+                        area[key] = (int(value[0]), int(value[1])) 
+                    return area
+            
+        except ValueError as e:
+            print(f'Error: {e}')
 
     return None
 
@@ -50,8 +54,7 @@ def squareness(corners):
         np.array(corners['top_left']) - np.array(corners['bottom_right']),
         np.array(corners['bottom_left']) - np.array(corners['top_right'])
     ]
-
-
+    
     # Calculate side and diagonal lengths
     side_lengths = [np.linalg.norm(vectors[i]) for i in range(4)]
     diagonal_lengths = [np.linalg.norm(vectors[i]) for i in range(4, 6)]
@@ -72,27 +75,7 @@ def squareness(corners):
 
     # Combine length and angle differences into a single score
     return abs(side_diff_sum + diagonal_diff_sum + angle_diff_sum)
-    
-    '''
-    # Calculate vectors between corners points 
-    vectors = [
-        np.array(corners['top_left']) - np.array(corners['top_right']),
-        np.array(corners['top_right']) - np.array(corners['bottom_right']),
-        np.array(corners['bottom_right']) - np.array(corners['bottom_left']),
-        np.array(corners['bottom_left']) - np.array(corners['top_left'])
-    ]
 
-    # Calculate the sum of squared differences of opposite sides
-    side_lengths = [np.linalg.norm(vectors[i]) for i in range(4)]
-    side_diff_sum = sum((side_lengths[i] - side_lengths[(i + 2) % 4]) ** 2 for i in range(4))
-    
-    # Check if angles between adjacent sides are close to 90 degrees
-    dot_products = [np.dot(vectors[i], vectors[(i + 1) % 4]) for i in range(4)]
-    angle_diff_sum = sum(abs(dot_products[i]) for i in range(4))
-
-    # Combine side lengths and angle differences into a single score
-    return side_diff_sum + angle_diff_sum
-    '''
 
 # Compare squares and find the best one (with respect to squareness)
 def findBestSquare(squares):
@@ -157,43 +140,62 @@ def groupByAngleKmeans(lines, k=2, **kwargs) -> list:
     groups = list(groups.values())
     return groups
 
-
 #  Finds the intersection of two lines given in Hesse normal form.
 def getIntersection(line1, line2) -> list:
-    '''
-    Returns closest integer pixel locations.
-    See https://stackoverflow.com/a/383527/5087436
-    '''
-    rho1, theta1 = line1[0]
-    rho2, theta2 = line2[0]
-    A = np.array([
-        [np.cos(theta1), np.sin(theta1)],
-        [np.cos(theta2), np.sin(theta2)]
-    ])
-    b = np.array([[rho1], [rho2]])
-    x0, y0 = np.linalg.solve(A, b)
-    x0, y0 = int(np.round(x0)), int(np.round(y0))
-    return [[x0, y0]]
+    try:
+        rho1, theta1 = line1[0]
+        rho2, theta2 = line2[0]
+        A = np.array([
+            [np.cos(theta1), np.sin(theta1)],
+            [np.cos(theta2), np.sin(theta2)]
+        ])
+        b = np.array([[rho1], [rho2]])
+        x0, y0 = np.linalg.solve(A, b)
+        x0, y0 = int(np.round(x0)), int(np.round(y0))
+        return [[x0, y0]]
 
+    except np.linalg.LinAlgError:
+        return None # Lines are parallel or intersection is invalid
 
 # Finds the intersections between groups of lines.
 def segmentIntersections(lines) -> list:
+    if len(lines) < 2:
+        raise ValueError("Not enough line groups for intersection")
+    
     intersections = []
     for i, group in enumerate(lines[:-1]):
         for next_group in lines[i+1:]:
+            if len(group) == 0 or len(next_group) == 0:
+                continue  # Skip empty groups
             for line1 in group:
                 for line2 in next_group:
-                    intersections.append(getIntersection(line1, line2)) 
-    return intersections
+                    intersection = getIntersection(line1, line2)
+                    if intersection is not None:  # Only add valid intersections
+                        intersections.append(intersection)
 
+    return intersections
 
 # Filter intersections points.
 def filterIntersections(intersections, rows, cols) -> dict:
-    intersections = [pt[0] for pt in intersections]
-    intersections = [pt for pt in intersections if pt[0] > 0 and pt[0] < rows and pt[1] > 0 and pt[1] < cols]
+
+    # Ensure intersections is not empty
+    if len(intersections) == 0:
+        raise ValueError("No valid intersections found")
+    
+    # Ensure intersections are within bounds
+    intersections = [pt[0] for pt in intersections if pt and len(pt) > 0]
+    intersections = [pt for pt in intersections if 0 < pt[0] < rows and 0 < pt[1] < cols]
+    
+    if len(intersections) == 0:
+        raise ValueError("No intersections within valid bounds")
+
     intersections = np.array(intersections)
-    s = intersections.sum(axis = 1)
-    d = np.diff(intersections, axis = 1)
+
+    if intersections.ndim != 2 or intersections.shape[1] != 2:
+        raise ValueError(f"Unexpected shape of intersections array: {intersections.shape}")
+
+    s = intersections.sum(axis=1)
+    d = np.diff(intersections, axis=1)
     points = {
         "top_left": tuple(intersections[np.argmin(s)]),
         "bottom_left": tuple(intersections[np.argmax(d)]),
@@ -201,7 +203,6 @@ def filterIntersections(intersections, rows, cols) -> dict:
         "bottom_right": tuple(intersections[np.argmax(s)])
     }
     return points
-
 
 # Check if a region, defined by corner points, is a (almost) perfect square. 
 def square(points, th = 0.05) -> bool:

@@ -44,9 +44,9 @@ if __name__ == '__main__':
     parser.add_argument( '--display', '-d', 
                          action = 'store_true', default=False,
                          help = 'display a result image')
-    parser.add_argument( '--length', '-l',
-                         help = 'map line length',
-                         default = '2500',
+    parser.add_argument( '--threshold', '-t',
+                         help = 'accumulator threshold parameter',
+                         default = '10000',
                          type = int )
     parser.add_argument( '--height',
                          help = 'fixed image height',
@@ -67,6 +67,10 @@ if __name__ == '__main__':
                          help = 'preparation approach (auto, manual, or single)',
                          default = 'single',
                          type = str )
+    parser.add_argument( '-n',
+                         help = 'number of CPU threads',
+                         default = 4,
+                         type = int )
     args = parser.parse_args()
     data_file = os.path.join(args.path, 'kartdata.json')
     directories = []
@@ -78,15 +82,6 @@ if __name__ == '__main__':
         for dir in directories:
             if os.path.exists(dir) and args.remove:
                 shutil.rmtree(dir)
-
-    '''
-    # Replace all the special characters in file and folder names (e.g. ÅÄÖ).
-    for path, subdir, files in os.walk(args.path, topdown=False):
-        for file in files:      
-            os.rename( os.path.join(path, file), os.path.join(path, getModifiedName(file)))
-        for folder in subdir:
-            os.rename( os.path.join(path, folder), os.path.join(path, getModifiedName(folder)))
-    '''
     
     # Create the structure of directories
     for dir in directories:
@@ -122,6 +117,10 @@ if __name__ == '__main__':
         print("Error: Could not open database file 'Tatorter_1980_2020.gpkg'.")
         print("Make sure the database file is located in path: {}".format(args.path))
 
+    # Turn of optimized paramters
+    cv2.setUseOptimized(True)
+    cv2.setNumThreads(args.n)  # Adjust according to the number of CPU cores
+        
     # Detect the map (square) image of interest
     for map in tqdm(maps['images']):
 
@@ -152,9 +151,9 @@ if __name__ == '__main__':
             
         # Run automatic map area detection
         elif args.approach == 'auto':
-            for length in tqdm(range(2000, 3500, 100)):
+            for th in tqdm(range(1000, 3500, 500)):
                 try:
-                    area = detectMapArea(img = img, length = length)
+                    area = detectMapArea(img = img, th = th)
                     if area is not None:
                         if map.area is None:
                             map.area = area
@@ -167,7 +166,7 @@ if __name__ == '__main__':
         else:
 
             try:
-                area = detectMapArea(img = img, length = args.length)
+                area = detectMapArea(img = img, th = args.threshold)
                 if area is not None:
                     if map.area is None:
                         map.area = area
