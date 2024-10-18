@@ -37,6 +37,9 @@ def detectMapArea(img: np.ndarray, length: int = 1000) -> np.array:
 
 # Calcualte squareness score
 def squareness(corners):
+    for key in ['top_left', 'top_right', 'bottom_left', 'bottom_right']:
+        if key not in corners:
+            return float('inf')            
 
     # Calculate vectors between corners points 
     vectors = [
