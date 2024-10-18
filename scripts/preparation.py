@@ -117,6 +117,9 @@ if __name__ == '__main__':
         print("Error: Could not open database file 'Tatorter_1980_2020.gpkg'.")
         print("Make sure the database file is located in path: {}".format(args.path))
 
+    # Remove all map image witout geodata
+    maps['images'] = [map for map in maps['images'] if map.points is not None] 
+    
     # Turn of optimized paramters
     cv2.setUseOptimized(True)
     cv2.setNumThreads(args.n)  # Adjust according to the number of CPU cores
@@ -182,28 +185,8 @@ if __name__ == '__main__':
                 
         print("---------------------------")
                     
-
     # Save meta data to file
     with open(data_file, 'w+', encoding = 'utf8') as f:
         json.dump(maps, f, indent = 2, ensure_ascii=False)
-
-    '''
-    # Crop all map images of category 'Ekonomisk' 
-    img = None
-    for map in map_categories['Ekonomisk']:
-        img = map.crop_image(folder = os.path.join(args.path, 'squares'), length = args.length, display = args.display)
-        print(map.coordinates())
-    
-    # Display one resulting image
-    if img is not None:
-        scale_percent = 25 # percent of original size
-        width = int(img.shape[1] * scale_percent / 100)
-        height = int(img.shape[0] * scale_percent / 100)
-        dim = (width, height)
-        img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
-        cv2.imshow('Hough Lines',img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    '''
 
     
