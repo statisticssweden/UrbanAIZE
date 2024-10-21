@@ -24,7 +24,7 @@ class PreparationWindow(Window):
                 "top_right": [self.w, 0],
                 "bottom_right": [self.w, self.h]    
             }
-
+        
         # Preparation sub window
         self.sub_window = None
         
@@ -32,6 +32,11 @@ class PreparationWindow(Window):
         cv2.moveWindow(self.name, 0, 0)
         cv2.setMouseCallback(self.name, self.click_handler, 0)
 
+        # Forward button coordinates and radius
+        self.btn_r = 200
+        self.btn_x, self.btn_y = self.w - self.btn_r - 50, self.btn_r + 50 
+        self.__clicked = False
+        
         # Update the map image (to draw map area)
         self.update()
 
@@ -39,6 +44,10 @@ class PreparationWindow(Window):
     def area(self) -> dict:
         return self.__area
 
+    @property
+    def clicked(self) -> dict:
+        return self.__clicked
+ 
     # Close (or destroy) map image window
     def close(self) -> None:
         super().close()
@@ -59,6 +68,15 @@ class PreparationWindow(Window):
         cv2.line( self.img, self.area['bottom_right'], self.area['bottom_left'], (0, 0, 255), 5)
         cv2.line( self.img, self.area['bottom_left'], self.area['top_left'], (0, 0, 255), 5)
 
+        # Draw forward button
+        cv2.circle( self.img, (self.btn_x, self.btn_y), self.btn_r, (255, 255, 255), -1)    
+        cv2.circle( self.img, (self.btn_x, self.btn_y), self.btn_r, (52, 50, 42), 32)
+        x1, x2 = self.btn_x - int(self.btn_r * 0.8), self.btn_x + int(self.btn_r * 0.8)
+        y1, y2 = self.btn_y - int(self.btn_y * 0.6), self.btn_y + int(self.btn_y * 0.6)
+        cv2.line( self.img, (x1, self.btn_y), (x2, self.btn_y), (52, 50, 42), 32)
+        cv2.line( self.img, (x2, self.btn_y), (self.btn_x, y1), (52, 50, 42), 32)
+        cv2.line( self.img, (x2, self.btn_y), (self.btn_x, y2), (52, 50, 42), 32)
+        
     # -----------------
     # Window event handlers
     # ------------------------
@@ -68,11 +86,14 @@ class PreparationWindow(Window):
         if self.sub_window is None:
             if event == cv2.EVENT_LBUTTONDOWN:
                 point = [x, y]
-                closest = { 'point': None, 'distance': float('inf') }
-                for key, corner in self.__area.items():
-                    dist = np.linalg.norm(np.array(corner) - np.array(point))
-                    if dist < closest['distance']:
-                        closest['distance'] = dist
-                        closest['point'] = key
-                self.__area[closest['point']] = point
-                self.update()
+                if np.linalg.norm(np.array([self.btn_x, self.btn_y]) - np.array(point)) < self.btn_r:
+                    self.__clicked = True
+                else:
+                    closest = { 'point': None, 'distance': float('inf') }
+                    for key, corner in self.__area.items():
+                        dist = np.linalg.norm(np.array(corner) - np.array(point))
+                        if dist < closest['distance']:
+                            closest['distance'] = dist
+                            closest['point'] = key
+                    self.__area[closest['point']] = point
+                    self.update()

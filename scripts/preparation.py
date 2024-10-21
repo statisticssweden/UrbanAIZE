@@ -147,14 +147,18 @@ if __name__ == '__main__':
                 if key == 27:
                     cv2.destroyAllWindows()
                     break
-                elif chr(key) in 'SsQq':
+                elif chr(key) in 'SsQq' or window.clicked:
                     window.close()
                     map.area = window.area
                     break
-            
+
+            # Save meta data to file
+            with open(data_file, 'w+', encoding = 'utf8') as f:
+                json.dump(maps, f, indent = 2, ensure_ascii=False)
+                
         # Run automatic map area detection
         elif args.approach == 'auto':
-            for th in tqdm(range(1000, 3500, 500)):
+            for th in tqdm(range(2000, 5000, 500)):
                 try:
                     area = detectMapArea(img = img, th = th)
                     if area is not None:
