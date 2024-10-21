@@ -41,9 +41,6 @@ def load_data(data_file) -> dict:
 # Conditional main
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data preparation pipeline.')
-    parser.add_argument( '--display', '-d', 
-                         action = 'store_true', default=False,
-                         help = 'display a result image')
     parser.add_argument( '--threshold', '-t',
                          help = 'accumulator threshold parameter',
                          default = '10000',

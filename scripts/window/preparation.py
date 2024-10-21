@@ -15,15 +15,17 @@ class PreparationWindow(Window):
         super().__init__(name, img)
         (self.h, self.w) = self.img.shape[:2]
         self.sc = height / self.h
+        self.__area = {}
         if area is not None:
             self.__area = area
-        else:
-            self.__area = {
-                "top_left": [0, 0],
-                "bottom_left": [0, self.h],
-                "top_right": [self.w, 0],
-                "bottom_right": [self.w, self.h]    
-            }
+        if 'top_left' not in self.__area:
+            self.__area['top_left'] = [0, 0]
+        if 'bottom_left' not in self.__area:
+            self.__area['bottom_left'] = [0, self.h]                
+        if 'top_right' not in self.__area:
+            self.__area['top_right'] = [self.w, 0]
+        if 'bottom_right' not in self.__area:
+            self.__area['bottom_right'] = [self.w, self.h]
         
         # Preparation sub window
         self.sub_window = None
